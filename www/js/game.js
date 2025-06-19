@@ -269,7 +269,7 @@ function drawObjects(p) {
   // Draw fireballs
   fireballs.forEach(f => {
     const x = getLaneCenter(f.lane, f.z, p);
-    const y = getYFromZ(f.z, p) + playerYOffset;
+    const y = (typeof f.worldY === 'number') ? f.worldY : (getYFromZ(f.z, p) + playerYOffset);
     const s = getSizeFromZ(f.z) * 0.6;
     if (fireballImg.complete) {
       ctx.drawImage(fireballImg, x - s / 2, y - s / 2, s, s);
@@ -332,13 +332,29 @@ function updateObjects() {
   objects = objects.filter((o) => o.z > deleteThresholdZ);
 
   // move fireballs (should move up: z += ...)
-  fireballs.forEach(f => f.z += 0.005); // slow speed for fireballs
+  fireballs.forEach(f => {
+    f.z += 0.005; // slow speed for fireballs
+    if (typeof f.worldY === 'number') {
+      f.worldY -= 6; // ให้ worldY ลดลง (พุ่งขึ้นบนจอ)
+    }
+  });
   fireballs = fireballs.filter(f => f.z < 1.2);
 
   // collision detection (player vs obstacle)
-  const COLLISION_THRESHOLD = 0.04;
+  const COLLISION_THRESHOLD = 32; // 32px tolerance
   for (const o of objects) {
-    if (o.lane === playerLane && Math.abs(o.z - playerZ) < COLLISION_THRESHOLD) {
+    const p = getRoadParams();
+    const playerX = getLaneCenter(playerLane, playerZ, p);
+    const t = performance.now() / 400;
+    const flyOffset = Math.sin(t) * 12;
+    const rowNorm = playerRow / (rows - 1);
+    const playerY = getYFromZ(rowNorm, p) + playerYOffset + flyOffset;
+    const obstacleX = getLaneCenter(o.lane, o.z, p);
+    const obstacleY = getYFromZ(o.z, p) + playerYOffset;
+    if (
+      o.lane === playerLane &&
+      Math.abs(playerY - obstacleY) < COLLISION_THRESHOLD
+    ) {
       objects = objects.filter(obj => obj !== o); // remove hit obstacle
       playerHealth--;
       if (playerHealth <= 0) {
@@ -365,7 +381,7 @@ function updateObjects() {
   const bossY = p.vp.y - bossH * 0.8 + bossH / 2 + bossFloat;
   fireballs = fireballs.filter(f => {
     const fx = getLaneCenter(f.lane, f.z, p);
-    const fy = getYFromZ(f.z, p) + playerYOffset;
+    const fy = (typeof f.worldY === 'number') ? f.worldY : (getYFromZ(f.z, p) + playerYOffset);
     const fs = getSizeFromZ(f.z);
     // Check overlap with boss
     if (
@@ -393,12 +409,11 @@ function updateObjects() {
   fireballs.forEach((f, fi) => {
     objects.forEach((o, oi) => {
       // ถ้า obstacle มี row ให้เช็ค row ด้วย ถ้าไม่มีถือว่าอยู่ row 0
-      const oRow = typeof o.row === 'number' ? o.row : 0;
-      const fRow = typeof f.row === 'number' ? f.row : 0;
+      // const oRow = typeof o.row === 'number' ? o.row : 0;
+      // const fRow = typeof f.row === 'number' ? f.row : 0;
       if (
         f.lane === o.lane &&
-        fRow === oRow &&
-        Math.abs(f.z - o.z) < FIREBALL_COLLISION_THRESHOLD
+        Math.abs(((typeof f.worldY === 'number') ? f.worldY : (getYFromZ(f.z, p) + playerYOffset)) - (getYFromZ(o.z, p) + playerYOffset)) < 32 // 32px tolerance
       ) {
         fireballsToRemove.add(fi);
         objectsToRemove.add(oi);
@@ -435,7 +450,7 @@ function drawPlayer(p) {
     }
     ctx.beginPath();
     const hx = 40 + i * 38;
-    const hy = 80;
+    const hy = p.H - 40;
     ctx.arc(hx, hy, 16, 0, Math.PI, false);
     ctx.bezierCurveTo(hx - 16, hy, hx - 16, hy + 24, hx, hy + 32);
     ctx.bezierCurveTo(hx + 16, hy + 24, hx + 16, hy, hx, hy);
@@ -474,7 +489,13 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "Space" && isRunning && !gameOver) {
     const now = Date.now();
     if (now - lastFireballTime >= fireballCooldown) {
-      fireballs.push({ lane: playerLane, row: playerRow, z: playerZ });
+      // คำนวณตำแหน่งกลาง sprite player จริง ๆ
+      const p = getRoadParams();
+      const t = performance.now() / 400;
+      const flyOffset = Math.sin(t) * 12;
+      const rowNorm = playerRow / (rows - 1);
+      const y = getYFromZ(rowNorm, p) + playerYOffset + flyOffset;
+      fireballs.push({ lane: playerLane, row: playerRow, z: playerZ, worldY: y });
       lastFireballTime = now;
     }
   }
