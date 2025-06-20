@@ -1,0 +1,191 @@
+body {
+  margin: 0;
+  background: #222;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #fff;
+}
+
+.game-container {
+  position: relative;
+}
+
+canvas {
+  border: 4px solid #555;
+  background: #444;
+  display: block;
+}
+
+.hud {
+  font-size: 18px;
+  position: relative;
+  width: 400px;
+  margin: 0 auto;
+}
+
+.back-btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: #22223b;
+  color: #ffbe0b;
+  border: 2px solid #ffbe0b;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.2s, color 0.2s;
+}
+
+.back-btn:hover {
+  background: #ffbe0b;
+  color: #22223b;
+}
+
+.game-text {
+  font-family: 'Press Start 2P', monospace;
+}
+
+.gold-text {
+  color: #FFD700;
+  text-shadow: 1px 1px 2px #b8860b;
+}
+
+.overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.car-select-box {
+  background: #222;
+  padding: 32px 48px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 32px #000a;
+}
+
+
+.car-options>.car-option {
+  margin-bottom: 0;
+}
+
+.car-option {
+  width: 72px;
+  height: 90px;
+  border: 3px solid #fff;
+  border-radius: 14px;
+  cursor: pointer;
+  outline: none;
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border 0.2s, box-shadow 0.2s, transform 0.12s;
+  position: relative;
+}
+
+.car-option img {
+  display: block;
+  width: 48px;
+  height: 72px;
+  filter: drop-shadow(0 2px 6px #0008);
+  transition: filter 0.2s;
+}
+
+.car-option:focus,
+.car-option:hover {
+  border: 3px solid #ffbe0b;
+  box-shadow: 0 8px 32px 0 rgba(255, 190, 11, 0.18);
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.color-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
+  transition: border 0.18s, transform 0.12s;
+}
+
+.color-option:focus,
+.color-option:hover {
+  border: 2.5px solid #ffbe0b;
+  transform: scale(1.18);
+  z-index: 2;
+}
+
+.car-option.selected {
+  border: 3px solid #ffbe0b !important;
+  box-shadow: 0 0 0 4px rgba(255,190,11,0.18), 0 8px 32px 0 rgba(255,190,11,0.18) !important;
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.color-option.selected {
+  border: 2.5px solid #ffbe0b !important;
+  box-shadow: 0 0 0 4px rgba(255,190,11,0.18), 0 2px 8px 0 rgba(255,190,11,0.18) !important;
+  transform: scale(1.18);
+  z-index: 2;
+}
+
+#startGameBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.1rem;
+  background: linear-gradient(90deg, #ffbe0b 0%, #fb5607 100%);
+  color: #222;
+  border: 3px solid #ffbe0b;
+  border-radius: 12px;
+  padding: 18px 0;
+  box-shadow: 0 4px 16px 0 rgba(255, 190, 11, 0.18);
+  transition: background 0.18s, color 0.18s, opacity 0.18s;
+  cursor: pointer;
+  margin: 28px auto 0 auto;
+  display: block;
+}
+
+#startGameBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #888;
+  color: #fff;
+  border-color: #bbb;
+}
+
+.car-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.car-option-container {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.color-select-row {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+}

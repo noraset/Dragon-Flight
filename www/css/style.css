@@ -1,74 +1,70 @@
-body {
-  margin: 0;
-  padding: 0;
-  background: #0095d0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.canvas-container {
-  position: relative;
-  width: 90vw;
-  max-width: 540px;
-}
-
-canvas {
-  width: 100%;
-  height: auto;
-  display: block;
-  border: 2px solid #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  image-rendering: pixelated;
-}
-
-.game-btn {
-  background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
-  color: #fff;
-  border: none;
-  border-radius: 32px;
-  font-size: 2rem;
-  font-family: 'Press Start 2P', 'monospace', sans-serif;
-  padding: 18px 60px;
-  box-shadow: 0 4px 24px #0008;
-  cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
-  outline: none;
-  letter-spacing: 2px;
-}
-
-.game-btn:hover {
-  transform: scale(1.07);
-  box-shadow: 0 8px 32px #000a;
-}
-
-.game-btn:active {
-  transform: scale(0.97);
-}
-
-#gameButtons {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 36px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
-  z-index: 10;
-  pointer-events: auto;
-}
-
-#overlayMsg {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 40%;
-  text-align: center;
-  font-size: 64px;
-  color: #f44;
-  font-weight: bold;
-  pointer-events: none;
-}
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Press Start 2P', cursive;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+  }
+  
+  .minigame-bg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .minigame-container {
+    background: rgba(30, 30, 60, 0.95);
+    border: 4px solid #ffbe0b;
+    border-radius: 24px;
+    padding: 48px 32px;
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  
+  .game-title {
+    font-size: 2.2rem;
+    margin-bottom: 32px;
+    color: #ffbe0b;
+    text-shadow: 2px 2px 0 #222, 4px 4px 0 #222;
+  }
+  
+  .minigame-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    align-items: center;
+  }
+  
+  .minigame-btn {
+    background: linear-gradient(90deg, #ff006e 0%, #8338ec 100%);
+    color: #fff;
+    border: 3px solid #fff;
+    border-radius: 16px;
+    padding: 24px 40px;
+    font-size: 1.1rem;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    box-shadow: 0 4px 16px 0 rgba(0,0,0,0.3);
+    transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+    position: relative;
+    outline: none;
+  }
+  
+  .minigame-btn:hover, .minigame-btn:focus {
+    background: linear-gradient(90deg, #ffbe0b 0%, #fb5607 100%);
+    color: #222;
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px 0 rgba(255,190,11,0.3);
+    border-color: #ffbe0b;
+  }
+  
+  .minigame-desc {
+    display: block;
+    font-size: 0.8rem;
+    color: #fff;
+    margin-top: 12px;
+    opacity: 0.85;
+    text-shadow: 1px 1px 0 #222;
+  }

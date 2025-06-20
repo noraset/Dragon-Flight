@@ -1,24 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <title>Dragon Runner 3D</title>
+  <title>Lnwcome Minigames</title>
   <style>
     @import "css/style.css";
   </style>
 </head>
-
 <body>
-  <div class="canvas-container" style="position:relative;">
-    <canvas id="gameCanvas" width="720" height="1024"></canvas>
-    <div id="overlayMsg"></div>
-    <div id="gameButtons">
-      <button id="startBtn" class="game-btn">Start</button>
+  <div class="minigame-bg">
+    <div class="minigame-container">
+      <h1 class="game-title">Lnwcome </h1>
+      <h2 class="game-title">Minigames</h2>
+      <div class="minigame-list">
+        <button class="minigame-btn" data-game="dragon-fireball">
+          <span>🔥 Dragon Fireball</span>
+          <div class="minigame-desc">หลบไฟและเก็บคะแนนให้ได้มากที่สุด!</div>
+        </button>
+        <button class="minigame-btn" data-game="byte-snake">
+          <span>🐉 Byte Snake Game</span>
+          <div class="minigame-desc">เกมงูสุดคลาสสิกในสไตล์ 8-bit</div>
+        </button>
+        <button class="minigame-btn" data-game="car-dodger-game">
+          <span>🚗 Car Dodger Game</span>
+          <div class="minigame-desc">วิ่งรถตรงไปหาปลายทางโดยหลบรถที่ตัดกัน</div>
+        </button>
+        <!-- เพิ่มปุ่มสำหรับมินิเกมอื่นๆ -->
+      </div>
     </div>
   </div>
-  <script src="js/game.js"></script>
+  <script src="js/index.js"></script>
 </body>
-
 </html>

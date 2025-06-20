@@ -27,3 +27,17 @@ function onDeviceReady() {
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
     document.getElementById('deviceready').classList.add('ready');
 }
+
+document.querySelectorAll('.minigame-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const game = this.getAttribute('data-game');
+      if (game === 'dragon-fireball') {
+        window.location.href = 'dragon-fireball.html';
+      } else if (game === 'byte-snake') {
+        window.location.href = 'byte-snake.html';
+      }else if (game === 'car-dodger-game') {
+        window.location.href = 'car-dodger.html';
+      }
+      // เพิ่มกรณีสำหรับมินิเกมอื่นๆ
+    });
+  });

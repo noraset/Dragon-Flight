@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Byte Snake Game</title>
+    <style>
+        @import "css/byte-snake.css";
+    </style>
+</head>
+
+<body>
+    <button class="back-btn" onclick="window.location.href='index.html'">← กลับหน้าเลือก Minigame</button>
+    <div style="position: relative; width: 400px; margin: 0 auto;">
+        <div id="scoreBoard">
+            <div class="game-text gold-text" id="scoreDisplay">Score: 0</div>
+            <div class="game-text gold-text" id="levelDisplay">Level: 1</div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="overlayUI">
+            <div id="gameTitle">
+                <h1 class="game-text gold-text">BYTESNAKE</h1>
+                <h4 class="game-text gold-text">A RETRO SNAKE GAME</h2>
+            </div>
+            <input id="playerNameInput" placeholder="Enter your name" />
+            <button id="startBtn" class="game-text">Start Game</button>
+            <h1 id="gameOver">💀 Game Over 💀</h1>
+            <div id="highScoreTable">
+                <h2>🏆 High Scores</h2>
+                <table id="highScoreTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div>
+        <button id="restartBtn" class="game-text">RESTART</button>
+        <button id="pauseBtn" class="game-text">PAUSE</button>
+        <button id="modeBtn" style="display: none;">Switch to Wrapped Mode</button>
+        <button id="homeBtn" class="game-text">HOME</button>
+    </div>
+    <div id="instruction">
+        Press Spacebar to start or pause/resume the game
+    </div>
+    <script src="js/byte-snake.js"></script>
+</body>
+
+</html>

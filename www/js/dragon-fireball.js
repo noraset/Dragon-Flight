@@ -47,17 +47,17 @@ let fireballs = []; // {x, y, z}
 
 // Load player image
 const playerImg = new Image();
-playerImg.src = "img/player.png";
+playerImg.src = "img/dragon-fireball/player.png";
 
 // Load boss image
 const bossImg = new Image();
-bossImg.src = "img/boss.png";
+bossImg.src = "img/dragon-fireball/boss.png";
 
 const fireImg = new Image();
-fireImg.src = "img/fire.png";
+fireImg.src = "img/dragon-fireball/fire.png";
 
 const heartImg = new Image();
-heartImg.src = "img/heart.png";
+heartImg.src = "img/dragon-fireball/heart.png";
 
 // Add at the top, after state
 const maxDistance = 2000; // ระยะทางสูงสุดที่ต้องบินถึง (ปรับได้)
@@ -68,7 +68,7 @@ let animationId = null;
 
 // Load fireball image
 const fireballImg = new Image();
-fireballImg.src = "img/fireball.png";
+fireballImg.src = "img/dragon-fireball/fireball.png";
 
 let fireballCooldown = 400; // หน่วง 400ms ต่อการยิง 1 ครั้ง
 let lastFireballTime = 0;
@@ -267,12 +267,22 @@ function drawObjects(p) {
     }
   });
   // Draw fireballs
-  fireballs.forEach(f => {
+  fireballs.forEach((f, i) => {
     const x = getLaneCenter(f.lane, f.z, p);
     const y = (typeof f.worldY === 'number') ? f.worldY : (getYFromZ(f.z, p) + playerYOffset);
     const s = getSizeFromZ(f.z) * 0.6;
     if (fireballImg.complete) {
-      ctx.drawImage(fireballImg, x - s / 2, y - s / 2, s, s);
+      ctx.save();
+      // ctx.drawImage(fireballImg, x - s / 2, y - s / 2, s, s);
+      const flip = Math.floor(performance.now() / 100 + i) % 2 === 1;
+      if (flip) {
+        ctx.translate(x, y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(fireballImg, -s / 2, -s / 2, s, s);
+      } else {
+        ctx.drawImage(fireballImg, x - s / 2, y - s / 2, s, s);
+      }
+      ctx.restore();
     } else {
       ctx.fillStyle = "#ff0";
       ctx.beginPath();
@@ -456,7 +466,7 @@ function drawPlayer(p) {
     ctx.bezierCurveTo(hx + 16, hy + 24, hx + 16, hy, hx, hy);
     if (heartImg.complete) {
       ctx.drawImage(heartImg, hx - 16, hy - 16, 32, 32);
-    } 
+    }
     ctx.restore();
   }
 }

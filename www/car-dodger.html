@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Car Dodger Game</title>
+    <link rel="stylesheet" href="css/car-dodger.css">
+</head>
+
+<body>
+    <button class="back-btn" onclick="window.location.href='index.html'">← กลับหน้าเลือก Minigame</button>
+    <div class="game-container">
+        <div class="hud">
+            <span id="score" class="game-text gold-text">Score: 0</span>
+        </div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
+    <div id="carSelectOverlay" class="overlay">
+        <div class="car-select-box">
+            <h2 class="game-text">Select Your Car</h2>
+            <div class="car-options">
+                <div class="car-option-container">
+                    <button class="car-option" data-img="img/car-dodger/car1.png"><img src="img/car-dodger/car1.png"
+                            alt="Car 1" width="48" height="72"></button>
+                    <button class="car-option" data-img="img/car-dodger/car2.png"><img src="img/car-dodger/car2.png"
+                            alt="Car 2" width="48" height="72"></button>
+                    <button class="car-option" data-img="img/car-dodger/car3.png"><img src="img/car-dodger/car3.png"
+                            alt="Car 3" width="48" height="72"></button>
+                    <button class="car-option" data-img="img/car-dodger/car4.png"><img src="img/car-dodger/car4.png"
+                            alt="Car 4" width="48" height="72"></button>
+                </div>
+                <div class="color-select-row">
+                    <button class="color-option" data-color="red" style="background:#e53935"></button>
+                    <button class="color-option" data-color="green" style="background:#43a047"></button>
+                    <button class="color-option" data-color="blue" style="background:#1e88e5"></button>
+                    <button class="color-option" data-color="purple" style="background:#8e24aa"></button>
+                </div>
+            </div>
+            <button id="startGameBtn" class="game-btn" disabled style="margin-top:24px;width:160px;">Start</button>
+        </div>
+    </div>
+    <script src="js/car-dodger.js"></script>
+</body>
+
+</html>
