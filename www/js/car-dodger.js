@@ -1,330 +1,275 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
 
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
+const W = canvas.width;
+const H = canvas.height;
 
-// รถของผู้เล่น
-let carImg = new Image();
-const car = {
-    width: 40,
-    height: 60,
-    x: WIDTH / 2 - 20,
-    y: HEIGHT - 80,
-    speed: 5,
-    img: carImg
-};
-
-// เตรียมภาพรถ obstacle
-const obstacleCarImgs = [
-    "img/car-dodger/car1.png",
-    "img/car-dodger/car2.png",
-    "img/car-dodger/car3.png",
-    "img/car-dodger/car4.png"
-].map(src => {
-    const img = new Image();
-    img.src = src;
-    return img;
+// Load multiple car images
+const carSrcs = ['img/car-dodger/car1.png', 'img/car-dodger/car2.png', 'img/car-dodger/car3.png', 'img/car-dodger/car4.png'];
+const carImgs = carSrcs.map(src => {
+  const img = new Image();
+  img.src = src;
+  return img;
 });
 
-// ข้อมูล obstacle
-let obstacles = [];
-const spawnRate = 90;  // ทุกกี่เฟรม spawn ครั้งหนึ่ง
+// Utility to pick a random car image
+function getRandomCarImg() {
+  return carImgs[Math.floor(Math.random() * carImgs.length)];
+}
+
+// ถนน
+const road = {
+  width: W * 0.6,
+  x: (W - W * 0.6) / 2,
+  y: 0,
+  height: H,
+  lineWidth: 4,
+  lineGap: 30,
+  lineLength: 20,
+  offset: 0
+};
+
+// รถผู้เล่น
+const player = {
+  width: 40,
+  height: 60,
+  x: W/2 - 20,
+  y: H - 80,
+  speed: 5,
+  img: getRandomCarImg()
+};
+
+// รถคู่แข่ง
+let enemies = [];
+const spawnRate = 100; // frames
 let frameCount = 0;
 
 // คะแนน
 let score = 0;
 
-// ควบคุมด้วย Arrow Left / Right
-const keys = { left: false, right: false };
-document.addEventListener("keydown", e => {
-    if (e.code === "ArrowLeft") keys.left = true;
-    if (e.code === "ArrowRight") keys.right = true;
+// คีย์
+const keys = { left:false, right:false, up:false, down:false };
+document.addEventListener('keydown', e => {
+  if (e.code === 'ArrowLeft')  keys.left  = true;
+  if (e.code === 'ArrowRight') keys.right = true;
+  if (e.code === 'ArrowUp')    keys.up    = true;
+  if (e.code === 'ArrowDown')  keys.down  = true;
 });
-document.addEventListener("keyup", e => {
-    if (e.code === "ArrowLeft") keys.left = false;
-    if (e.code === "ArrowRight") keys.right = false;
+document.addEventListener('keyup', e => {
+  if (e.code === 'ArrowLeft')  keys.left  = false;
+  if (e.code === 'ArrowRight') keys.right = false;
+  if (e.code === 'ArrowUp')    keys.up    = false;
+  if (e.code === 'ArrowDown')  keys.down  = false;
 });
 
-// สุ่มสร้าง obstacle
-function spawnObstacle() {
-    const x = Math.random() * (WIDTH - 40);
-    const carImgIdx = Math.floor(Math.random() * obstacleCarImgs.length);
-    obstacles.push({
-        x,
-        y: -60,
-        width: 40,
-        height: 60,
-        speed: 2 + Math.random() * 2,
-        img: obstacleCarImgs[carImgIdx],
-        angle: 0 // เริ่มต้นสุ่มมุม
-    });
+// โหลดภาพต้นไม้และบ้าน
+const treeImg = new Image();
+treeImg.src = 'img/tree.png';
+const homeImg = new Image();
+homeImg.src = 'img/home.png';
+
+// roadside objects (tree/home)
+const roadsideObjects = [];
+const roadsideSpacing = 180;
+const roadsideSpeed = 2.5; // ปรับความเร็วให้ใกล้เคียง enemies
+const roadsideTypes = [
+  {img: treeImg, w: 48, h: 64, type: 'tree'},
+  {img: homeImg, w: 64, h: 64, type: 'home'}
+];
+
+// สร้างรถคู่แข่ง
+function spawnEnemy() {
+  const ex = road.x + Math.random()*(road.width - player.width);
+  enemies.push({
+    x: ex,
+    y: -player.height,
+    width: player.width,
+    height: player.height,
+    speed: 2 + Math.random() * 2,
+    img: getRandomCarImg(),
+    angle: 0,
+    angularSpeed: 0.1
+  });
 }
 
-// อัปเดตสถานะทั้งหมด
-function update() {
-    frameCount++;
-    if (frameCount % spawnRate === 0) {
-        spawnObstacle();
+// สร้างต้นไม้และบ้านข้างถนน
+function spawnRoadsideObject(side) {
+  // สุ่มชนิด (บ้านน้อยกว่าต้นไม้)
+  const isHome = Math.random() < 0.25;
+  const t = isHome ? roadsideTypes[1] : roadsideTypes[0];
+  roadsideObjects.push({
+    y: -t.h,
+    side,
+    ...t
+  });
+}
+
+// วาดถนน + เส้นเลน
+function drawRoad() {
+  // พื้นถนน
+  ctx.fillStyle = '#333';
+  ctx.fillRect(road.x, road.y, road.width, road.height);
+  // เส้นประกลางถนน (ขยับลง)
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = road.lineWidth;
+  let y = -road.offset;
+  while (y < H) {
+    ctx.beginPath();
+    ctx.moveTo(W/2, y);
+    ctx.lineTo(W/2, y + road.lineLength);
+    ctx.stroke();
+    y += road.lineLength + road.lineGap;
+  }
+  // เส้นขอบถนน
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(road.x, road.y, road.width, road.height);
+}
+
+// วาดรถผู้เล่น
+function drawPlayer() {
+  if (player.img.complete) {
+    ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
+  } else {
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+  }
+}
+
+// วาดรถคู่แข่ง
+function drawEnemies() {
+  enemies.forEach(e => {
+    const w = e.width;
+    const h = e.height;
+    const cx = e.x + w / 2;
+    const cy = e.y + h / 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (e.img.complete) {
+      ctx.drawImage(e.img, -w/2, -h/2, w, h);
+    } else {
+      ctx.fillStyle = '#f00';
+      ctx.fillRect(-w/2, -h/2, w, h);
     }
+    ctx.restore();
+  });
+}
 
-    // เคลื่อนรถ
-    if (keys.left) car.x -= car.speed;
-    if (keys.right) car.x += car.speed;
-    car.x = Math.max(0, Math.min(WIDTH - car.width, car.x));
+// วาดต้นไม้และบ้านข้างถนน
+function drawRoadsideObjects() {
+  roadsideObjects.forEach(obj => {
+    const x = obj.side === 'left' ? (road.x - obj.w - 10) : (road.x + road.width + 10);
+    if (obj.img.complete) ctx.drawImage(obj.img, x, obj.y, obj.w, obj.h);
+  });
+}
 
-    // เคลื่อน obstacle และหมุน
-    obstacles.forEach(o => {
-        o.y += o.speed;
-        o.angle += 0.05; // หมุนต่อเนื่อง
-        if (o.angle > Math.PI * 2) o.angle -= Math.PI * 2;
-    });
+// ฟังก์ชันแสดง Game Over overlay
+function showGameOverOverlay(score) {
+  const overlay = document.getElementById('gameOverOverlay');
+  const scoreBox = document.getElementById('finalScore');
+  scoreBox.textContent = `Score: ${score}`;
+  overlay.style.display = 'flex';
+  isGameOver = true;
+  // โฟกัสปุ่ม restart
+  setTimeout(() => {
+    const btn = document.getElementById('restartBtn');
+    if (btn) btn.focus();
+  }, 100);
+}
 
-    // ตรวจชน
-    obstacles.forEach(o => {
-        if (
-            o.y + o.height > car.y &&
-            o.x < car.x + car.width &&
-            o.x + o.width > car.x
-        ) {
-            // Game Over
-            alert(`Game Over!\nคะแนน: ${score}`);
-            resetGame();
-        }
-    });
+// อัปเดตตำแหน่งทั้งหมด
+function update() {
+  if (isGameOver) return;
+  frameCount++;
+  // spawn enemy
+  if (frameCount % spawnRate === 0) spawnEnemy();
 
-    // ทำความสะอาด obstacle ออกจากจอ และเพิ่มคะแนน
-    obstacles = obstacles.filter(o => {
-        if (o.y > HEIGHT) {
-            score++;
-            document.getElementById("score").innerText = `Score: ${score}`;
-            return false;
-        }
-        return true;
-    });
+  // spawn roadside objects (ซ้าย/ขวา)
+  if (roadsideObjects.length === 0 || roadsideObjects[roadsideObjects.length-1].y > roadsideSpacing) {
+    spawnRoadsideObject('left');
+    spawnRoadsideObject('right');
+  }
+  // ขยับ roadside objects
+  roadsideObjects.forEach(obj => obj.y += roadsideSpeed);
+  // ลบที่หลุดจอ
+  while (roadsideObjects.length && roadsideObjects[0].y > H + 50) roadsideObjects.shift();
+
+  // เคลื่อนถนน (offset เส้นเลน) ด้วยความเร็วคงที่
+  road.offset = (road.offset + 2) % (road.lineLength + road.lineGap);
+
+  // เคลื่อน player
+  if (keys.left)  player.x -= player.speed;
+  if (keys.right) player.x += player.speed;
+  if (keys.up)    player.y -= player.speed;
+  if (keys.down)  player.y += player.speed;
+  player.x = Math.max(road.x, Math.min(road.x + road.width - player.width, player.x));
+  // จำกัด player.y ไม่ให้ออกนอกถนน (บน/ล่าง)
+  const minY = 0;
+  const maxY = H - player.height;
+  player.y = Math.max(minY, Math.min(maxY, player.y));
+
+  // เคลื่อน enemies
+  enemies.forEach(e => { e.y += e.speed; e.angle += e.angularSpeed; });
+
+  // ตรวจชน
+  for (let e of enemies) {
+    if (
+      player.x < e.x + e.width &&
+      player.x + player.width > e.x &&
+      player.y < e.y + e.height &&
+      player.y + player.height > e.y
+    ) {
+      showGameOverOverlay(score);
+      return;
+    }
+  }
+
+  // กรอง enemies ออกจากจอ + เพิ่มคะแนน
+  enemies = enemies.filter(e => {
+    if (e.y > H) {
+      score++;
+      document.getElementById('score').innerText = `Score: ${score}`;
+      return false;
+    }
+    return true;
+  });
 }
 
 // รีเซ็ตเกม
-function resetGame() {
-    obstacles = [];
-    score = 0;
-    frameCount = 0;
-    car.x = WIDTH / 2 - car.width / 2;
-    document.getElementById("score").innerText = `Score: 0`;
-}
-
-// วาดทุกอย่างบน canvas
-function draw() {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-    drawGrid();
-
-    // วาดถนน (พื้นหลัง)
-    ctx.fillStyle = "#555";
-    ctx.fillRect(50, 0, WIDTH - 100, HEIGHT);
-
-    // ขีดแบ่งเลน
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([20, 15]);
-    ctx.beginPath();
-    ctx.moveTo(WIDTH / 2, 0);
-    ctx.lineTo(WIDTH / 2, HEIGHT);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // วาดรถผู้เล่น
-    if (car.img && car.img.complete) {
-        const coloredCarCanvas = changeImageHue(carImg, selectedHue, car.width, car.height);
-        ctx.drawImage(coloredCarCanvas, car.x, car.y, car.width, car.height);
-    } else {
-        ctx.fillStyle = "#0f0";
-        ctx.fillRect(car.x, car.y, car.width, car.height);
-    }
-    // วาด obstacle เป็นรถ
-    obstacles.forEach(o => {
-        if (o.img && o.img.complete) {
-            ctx.save();
-            ctx.translate(o.x + o.width / 2, o.y + o.height / 2);
-            ctx.rotate(Math.PI); // กลับหัว
-            ctx.drawImage(o.img, -o.width / 2, -o.height / 2, o.width, o.height);
-            ctx.restore();
-        } else {
-            ctx.fillStyle = "#f00";
-            ctx.fillRect(o.x, o.y, o.width, o.height);
-        }
-    });
-}
-
-function drawGrid() {
-    ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
-    ctx.lineWidth = 1;
-    // แนวตั้ง
-    for (let x = 0; x <= WIDTH; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, HEIGHT);
-        ctx.stroke();
-    }
-    // แนวนอน
-    for (let y = 0; y <= HEIGHT; y += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(WIDTH, y);
-        ctx.stroke();
-    }
-    ctx.restore();
+function reset() {
+  player.img = getRandomCarImg();
+  enemies = [];
+  score = 0;
+  frameCount = 0;
+  player.x = W/2 - player.width/2;
+  document.getElementById('score').innerText = `Score: 0`;
+  // ซ่อน overlay
+  const overlay = document.getElementById('gameOverOverlay');
+  if (overlay) overlay.style.display = 'none';
+  isGameOver = false;
 }
 
 // ลูปหลัก
 function loop() {
+  if (!isGameOver) {
     update();
-    draw();
+    ctx.clearRect(0,0,W,H);
+    drawRoadsideObjects(); // วาดต้นไม้และบ้านข้างถนน
+    drawRoad();
+    drawPlayer();
+    drawEnemies();
     requestAnimationFrame(loop);
+  }
 }
 
-// --- Car image select overlay ---
-const carSelectOverlay = document.getElementById("carSelectOverlay");
-let selectedCarImgSrc = null;
-let selectedHue = null;
-let pendingCarImgSrc = null;
-let pendingHue = null;
-const startGameBtn = document.getElementById('startGameBtn');
+// เริ่มเกม
+reset();
+loop();
 
-function updateStartBtnState() {
-    startGameBtn.disabled = !(selectedCarImgSrc && selectedHue !== null);
-}
-
-function setSelectedButton(groupSelector, selectedBtn) {
-    document.querySelectorAll(groupSelector).forEach(btn => btn.classList.remove('selected'));
-    if (selectedBtn) selectedBtn.classList.add('selected');
-}
-
-
-
-document.querySelectorAll('.car-option').forEach(btn => {
-    btn.addEventListener('click', function () {
-        selectedCarImgSrc = this.getAttribute('data-img');
-        carImg = new Image();
-        carImg.src = selectedCarImgSrc;
-        setSelectedButton('.car-option', this);
-        // ถ้ามีการเลือกสีไว้แล้ว ให้ setSelectedButton กับปุ่มสีนั้นด้วย
-        if (selectedHue !== null) {
-            const selectedColorBtn = document.querySelector('.color-option[data-color="' + Object.keys(colorHueMap).find(key => colorHueMap[key] === selectedHue) + '"]');
-            if (selectedColorBtn) setSelectedButton('.color-option', selectedColorBtn);
-        }
-        updateCarImage();
-        updateStartBtnState();
-    });
+// เชื่อมปุ่ม restart
+window.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('restartBtn');
+  if (btn) btn.onclick = () => {
+    location.reload();
+  };
 });
-
-document.querySelectorAll('.color-option').forEach(btn => {
-    btn.addEventListener('click', function () {
-        const color = this.getAttribute('data-color');
-        selectedHue = colorHueMap[color] || 0;
-        setSelectedButton('.color-option', this);
-        // ถ้ามีการเลือกรถไว้แล้ว ให้ setSelectedButton กับปุ่มรถนั้นด้วย
-        if (selectedCarImgSrc) {
-            const selectedCarBtn = document.querySelector('.car-option[data-img="' + selectedCarImgSrc + '"]');
-            if (selectedCarBtn) setSelectedButton('.car-option', selectedCarBtn);
-        }
-        updateCarImage();
-        updateStartBtnState();
-    });
-});
-
-startGameBtn.addEventListener('click', function () {
-    if (selectedCarImgSrc && selectedHue !== null) {
-        carSelectOverlay.style.display = 'none';
-        resetGame();
-        loop();
-    }
-});
-
-// --- ปรับการเริ่มเกม ---
-function startGame() {
-    carSelectOverlay.style.display = "flex";
-    selectedCarImgSrc = null;
-    selectedHue = null;
-    car.img = null;
-    setSelectedButton('.car-option', null);
-    setSelectedButton('.color-option', null);
-    updateStartBtnState();
-}
-
-// ไม่ต้องเรียก loop() ทันที ให้รอเลือกก่อน
-startGame();
-
-function changeImageHue(img, hueDeg, width, height) {
-    // สร้าง offscreen canvas
-    const off = document.createElement('canvas');
-    off.width = width;
-    off.height = height;
-    const offCtx = off.getContext('2d');
-    offCtx.drawImage(img, 0, 0, width, height);
-
-    // ดึง pixel data
-    const imageData = offCtx.getImageData(0, 0, width, height);
-    const data = imageData.data;
-
-    // ปรับ hue
-    for (let i = 0; i < data.length; i += 4) {
-        // RGB → HSL
-        let r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
-        let max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
-        if (max === min) {
-            h = s = 0;
-        } else {
-            let d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
-            }
-            h /= 6;
-        }
-        // เปลี่ยน hue
-        h = (h * 360 + hueDeg) % 360;
-        if (h < 0) h += 360;
-        h /= 360;
-
-        // HSL → RGB
-        let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        let p = 2 * l - q;
-        function hue2rgb(p, q, t) {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        }
-        data[i] = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
-        data[i + 1] = Math.round(hue2rgb(p, q, h) * 255);
-        data[i + 2] = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
-        // data[i+3] = data[i+3]; // alpha
-    }
-    offCtx.putImageData(imageData, 0, 0);
-    return off;
-}
-
-// Map สีไปเป็นองศา hue
-const colorHueMap = {
-    red: 0,
-    green: 120,
-    blue: 240,
-    purple: 280
-};
-
-function updateCarImage() {
-    // ถ้าเลือกรถแล้วและเลือกสีแล้ว ให้ apply hue
-    pendingCarImgSrc = selectedCarImgSrc;
-    pendingHue = selectedHue;
-    car.img = carImg;
-    carImg.onload = function () {
-        car.img = carImg;
-    }
-}
